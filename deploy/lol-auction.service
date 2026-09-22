@@ -1,0 +1,18 @@
+[Unit]
+Description=LOL In-house Match Manager
+After=network.target
+
+[Service]
+Type=simple
+User=lolauction
+Group=lolauction
+WorkingDirectory=/opt/lol-auction
+EnvironmentFile=/etc/lol-auction.env
+ExecStart=/opt/lol-auction/.venv/bin/gunicorn --workers 1 --threads 1 --bind 127.0.0.1:5000 wsgi:app
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
