@@ -14,7 +14,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = BASE_DIR / "lol_auction.db"
+DATABASE = Path(os.environ["DATABASE_PATH"]) if os.environ.get("DATABASE_PATH") else BASE_DIR / "lol_auction.db"
 UPLOAD_FOLDER = BASE_DIR / "static" / "uploads"
 RANKS = ["黑铁", "青铜", "白银", "黄金", "铂金", "翡翠", "钻石", "大师", "宗师", "王者"]
 POSITIONS = ["上单", "打野", "中单", "下路", "辅助"]
@@ -44,6 +44,7 @@ def close_db(_: object | None = None) -> None:
 
 
 def init_db() -> None:
+    DATABASE.parent.mkdir(parents=True, exist_ok=True)
     with app.app_context():
         db = get_db()
         db.execute(

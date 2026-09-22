@@ -1,0 +1,8 @@
+.git/
+.deploy/
+.venv/
+__pycache__/
+*.py[cod]
+lol_auction.db
+static/uploads/
+tests/
