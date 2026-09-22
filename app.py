@@ -23,6 +23,8 @@ CAPTAIN_SELECTIONS = ["指定", "推举", "随机"]
 PLAYER_SELECTIONS = ["拍卖", "顺序"]
 SERIES_RULES = {"一局决胜负": (1, 1), "三局两胜": (3, 2), "五局三胜": (5, 3), "七局四胜": (7, 4)}
 ALLOWED_SCREENSHOT_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+# CentOS 7 上编译的 Python/OpenSSL 不提供 hashlib.scrypt，显式使用兼容的算法。
+PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-change-this-secret")
@@ -294,7 +296,7 @@ def validate_room(form) -> tuple[dict[str, object] | None, str | None]:
         "player_selection": player_selection,
         "auction_budget_cents": int(budget * 100),
         "rank_adjustment": int(raw_rank_adjustment),
-        "password_hash": generate_password_hash(room_password) if room_password else None,
+        "password_hash": generate_password_hash(room_password, method=PASSWORD_HASH_METHOD) if room_password else None,
     }, None
 
 
@@ -499,7 +501,7 @@ def register():
                     """INSERT INTO players
                     (phone, game_id, rank, primary_position, secondary_positions, password_hash)
                     VALUES (?, ?, ?, ?, ?, ?)""",
-                    (*profile.values(), generate_password_hash(profile["game_id"])),
+                    (*profile.values(), generate_password_hash(profile["game_id"], method=PASSWORD_HASH_METHOD)),
                 )
                 db.commit()
             except sqlite3.IntegrityError:
@@ -837,7 +839,7 @@ def fill_room_with_bots(room_id: int):
         cursor = db.execute(
             """INSERT INTO players (phone, game_id, rank, primary_position, secondary_positions, password_hash, is_bot)
             VALUES (?, ?, ?, ?, ?, ?, 1)""",
-            (phone, game_id, random.choice(RANKS), random.choice(POSITIONS), "", generate_password_hash(uuid4().hex)),
+            (phone, game_id, random.choice(RANKS), random.choice(POSITIONS), "", generate_password_hash(uuid4().hex, method=PASSWORD_HASH_METHOD)),
         )
         db.execute("INSERT INTO room_members (room_id, player_id) VALUES (?, ?)", (room_id, cursor.lastrowid))
     db.commit()
