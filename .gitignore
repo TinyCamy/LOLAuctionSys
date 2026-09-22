@@ -13,3 +13,6 @@ static/uploads/
 
 # Local environment files
 .env
+
+# One-off SSH deployment credentials
+.deploy/
