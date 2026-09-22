@@ -1,0 +1,39 @@
+{% set selected_secondary = (request.form.getlist('secondary_positions') if request.method == 'POST' else player.secondary_positions.split(',') if player is defined else []) %}
+<form method="post" class="profile-form">
+  <div class="form-row">
+    <label>手机号<input name="phone" type="tel" required value="{{ request.form.phone if request.method == 'POST' else player.phone if player is defined else '' }}"></label>
+    <label>游戏 ID<input name="game_id" required value="{{ request.form.game_id if request.method == 'POST' else player.game_id if player is defined else '' }}"></label>
+  </div>
+  <div class="form-row">
+    <label>当前段位<select name="rank" required>
+      <option value="">请选择段位</option>{% for rank in ranks %}<option value="{{ rank }}" {% if (request.form.rank if request.method == 'POST' else player.rank if player is defined else '') == rank %}selected{% endif %}>{{ rank }}</option>{% endfor %}
+    </select></label>
+    <label>主玩位置<select name="primary_position" required>
+      <option value="">请选择主玩位置</option>{% for position in positions %}<option value="{{ position }}" {% if (request.form.primary_position if request.method == 'POST' else player.primary_position if player is defined else '') == position %}selected{% endif %}>{{ position }}</option>{% endfor %}
+    </select></label>
+  </div>
+  <fieldset><legend>备选位置（最多选两个）</legend><div class="checks">{% for position in positions %}<label><input type="checkbox" name="secondary_positions" value="{{ position }}" {% if position in selected_secondary %}checked{% endif %}>{{ position }}</label>{% endfor %}</div></fieldset>
+  <button type="submit">{% if player is defined %}保存修改{% else %}注册并设置初始密码{% endif %}</button>
+</form>
+<script>
+const profileForm = document.querySelector('.profile-form');
+const primaryPosition = profileForm?.querySelector('[name="primary_position"]');
+
+function updateSecondaryPositions() {
+  const primary = primaryPosition?.value;
+  profileForm?.querySelectorAll('[name="secondary_positions"]').forEach((checkbox) => {
+    const isPrimary = checkbox.value === primary;
+    checkbox.disabled = isPrimary;
+    checkbox.closest('label').classList.toggle('disabled-option', isPrimary);
+    if (isPrimary) checkbox.checked = false;
+  });
+}
+
+updateSecondaryPositions();
+primaryPosition?.addEventListener('change', updateSecondaryPositions);
+profileForm?.addEventListener('change', (event) => {
+  if (event.target.name !== 'secondary_positions') return;
+  const choices = profileForm.querySelectorAll('input[name="secondary_positions"]:checked');
+  if (choices.length > 2) { event.target.checked = false; alert('最多选择两个备选位置'); }
+});
+</script>

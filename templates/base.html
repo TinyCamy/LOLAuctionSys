@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LOL内战</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">LOL内战</a>
+    {% if session.player_id %}
+    <nav>
+      <a href="{{ url_for('index') }}">首页</a>
+      <a href="{{ url_for('profile') }}">个人中心</a>
+      <a href="{{ url_for('logout') }}">退出</a>
+    </nav>
+    {% endif %}
+  </header>
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}{% if category == 'error' %}<dialog class="validation-dialog" data-auto-open><p>{{ message }}</p><button type="button" onclick="this.closest('dialog').close()">我知道了</button></dialog>{% else %}<div class="flash {{ category }}">{{ message }}</div>{% endif %}{% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <dialog id="client-validation-dialog" class="validation-dialog"><p></p><button type="button">我知道了</button></dialog>
+  <script>
+    const savedScroll = sessionStorage.getItem('lolAuctionScrollY');
+    if (savedScroll !== null) {
+      const restoreScroll = () => requestAnimationFrame(() => requestAnimationFrame(() => scrollTo(0, Number(savedScroll))));
+      history.scrollRestoration = 'manual';
+      restoreScroll();
+      if (document.readyState === 'complete') sessionStorage.removeItem('lolAuctionScrollY');
+      else window.addEventListener('load', () => { restoreScroll(); sessionStorage.removeItem('lolAuctionScrollY'); }, { once: true });
+    }
+    document.querySelectorAll('dialog[data-auto-open]').forEach(dialog => dialog.showModal());
+    const validationDialog = document.querySelector('#client-validation-dialog');
+    validationDialog.querySelector('button').addEventListener('click', () => validationDialog.close());
+    document.addEventListener('invalid', event => {
+      event.preventDefault();
+      const field = event.target;
+      if (field.type !== 'checkbox' && field.type !== 'radio' && field.tagName !== 'SELECT') field.value = '';
+      validationDialog.querySelector('p').textContent = `${field.labels?.[0]?.innerText || '此项'} 填写不正确，请重新填写。`;
+      validationDialog.showModal();
+      field.focus({ preventScroll: true });
+    }, true);
+    document.addEventListener('submit', event => {
+      const form = event.target;
+      if (form.checkValidity()) sessionStorage.setItem('lolAuctionScrollY', String(scrollY));
+    });
+  </script>
+</body>
+</html>

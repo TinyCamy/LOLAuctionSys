@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}登录 | LOL内战{% endblock %}
+{% block content %}
+<section class="card narrow"><h1>欢迎回来</h1><p>使用手机号和密码登录。</p>
+<form method="post">
+  <label>手机号<input name="phone" type="tel" required value="{{ request.form.phone|default('') }}"></label>
+  <label>密码<input name="password" type="password" required></label>
+  <button type="submit">登录</button>
+</form>
+<p class="hint">第一次来？<a href="{{ url_for('register') }}">去注册</a>。初始密码是你的游戏 ID。</p></section>
+{% endblock %}

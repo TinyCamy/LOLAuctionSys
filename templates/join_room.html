@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}加入 {{ room.name }} | LOL内战{% endblock %}
+{% block content %}
+<section class="card narrow"><h1>加入比赛房间</h1><p><strong>{{ room.name }}</strong> · 房间 ID：{{ room.match_id }}</p><p>当前 {{ room.member_count }} / {{ room.player_count }} 人。</p><form method="post">{% if password_required %}<label>房间密码<input name="room_password" type="password" required autofocus></label>{% else %}<p>该房间未设置密码，确认后即可加入。</p>{% endif %}<button>确认加入</button></form></section>
+{% endblock %}

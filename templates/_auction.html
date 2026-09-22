@@ -1,0 +1,47 @@
+{% if room.player_selection == '拍卖' and auction_queue %}
+<section class="card" id="auction">
+  <div class="section-heading">
+    <h2>拍卖队列</h2>
+    <button type="button" class="secondary-button" onclick="refreshAuction()">刷新拍卖区域</button>
+  </div>
+  <p class="auction-refresh-error" role="alert" hidden></p>
+  <div class="auction-queue">
+    {% for item in auction_queue %}
+    <article class="auction-group {% if current_group and item.group.id == current_group.id %}current{% endif %}">
+      <strong>第 {{ item.group.sequence_number }} 组{% if item.group.attempt_count > 1 %} · 第 {{ item.group.attempt_count }} 次拍卖{% endif %}</strong>
+      {% for player in item.players %}
+      <span>{{ player.game_id }} · {{ player.rank }} · 主玩{{ player.primary_position }}{% if player.secondary_positions %} / 备选{{ player.secondary_positions }}{% endif %}</span>
+      {% endfor %}
+      <small>{% if item.group.winner_choice_player_id %}已完成选人{% elif item.group.revealed %}等待优先方选择{% else %}等待拍卖{% endif %}</small>
+      {% for history in item.history|groupby('attempt_number') %}
+      <div class="bid-line">第{{ history.grouper }}次：{% for bid in history.list %}{{ bid.team_code }}队 {{ '%.2f'|format(bid.bid_cents/100) }}W{% if not loop.last %}　{% endif %}{% endfor %}</div>
+      {% endfor %}
+    </article>
+    {% endfor %}
+  </div>
+  {% if current_group %}
+  <div class="auction-action">
+    <h3>当前第 {{ current_group.sequence_number }} 组{% if current_group.attempt_count > 1 %} · 第 {{ current_group.attempt_count }} 次拍卖{% endif %}
+      <small class="remaining-budget">{% for team in teams %}{{ team.team_code }}队剩余 {{ '%.2f'|format(team.auction_budget_cents/100) }}W{% if not loop.last %} · {% endif %}{% endfor %}</small>
+    </h3>
+    {% if own_team_code %}<p class="auction-captain-identity">你是 <strong>{{ own_team_code }} 队队长</strong>。</p>{% endif %}
+    {% if current_group.revealed %}
+    <p>A队 {{ '%.2f'|format(group_bids.get('A',0)/100) }}W，B队 {{ '%.2f'|format(group_bids.get('B',0)/100) }}W；{{ current_group.winner_team }} 队优先选择。</p>
+    {% if own_team_code == current_group.winner_team %}
+    <form action="{{ url_for('auction_choose', room_id=room.id) }}" method="post">
+      <select name="player_id" aria-label="选择队员">
+        {% for player in group_players %}<option value="{{ player.id }}">{{ player.game_id }} · {{ player.rank }} · 主玩{{ player.primary_position }}</option>{% endfor %}
+      </select>
+      <button>确认选人</button>
+    </form>
+    {% endif %}
+    {% elif own_team_code and own_bid is none %}
+    <form action="{{ url_for('auction_bid', room_id=room.id) }}" method="post">
+      <label>拍卖金额（W）<input name="bid" type="number" min="0" step="0.01" required></label>
+      <button>提交拍卖</button>
+    </form>
+    {% elif own_team_code %}<p>你的拍卖已提交，等待另一位队长。</p>{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

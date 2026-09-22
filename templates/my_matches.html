@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}我参加的比赛 | LOL内战{% endblock %}
+{% block content %}
+{% set labels = {'PREPARING':'准备中','CAPTAIN_SELECTION':'选队长中','PLAYER_SELECTION':'选队员中','TEAMS_READY':'待开赛','IN_PROGRESS':'比赛中','FINISHED':'已结束'} %}
+<section class="hero"><div><h1>我参加过的比赛</h1><p>这里保留你加入过的所有比赛，包括已结束的历史战绩。</p></div><a class="button secondary" href="{{ url_for('index') }}">返回首页</a></section>
+{% if matches %}<div class="room-list">{% for match in matches %}<article class="room-card"><div class="room-heading"><div><h3>{{ match.name }}</h3><span>房间 ID：{{ match.match_id }}</span></div><span class="status">{{ labels.get(match.status, match.status) }}</span></div><dl><div><dt>赛制</dt><dd>{{ match.game_format }}</dd></div><div><dt>参与人数</dt><dd>{{ match.member_count }}/{{ match.player_count }}</dd></div><div><dt>创建者</dt><dd>{{ match.creator_game_id }}</dd></div><div><dt>状态</dt><dd>{{ labels.get(match.status, match.status) }}</dd></div></dl><a class="button secondary" href="{{ url_for('room_detail', room_id=match.id) }}">查看房间</a><a class="button" href="{{ url_for('room_results', room_id=match.id) }}">查看比赛成绩</a></article>{% endfor %}</div>{% else %}<div class="empty">你还没有参加过比赛。</div>{% endif %}
+{% endblock %}
